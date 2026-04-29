@@ -1,3 +1,11 @@
 htmls
 .env
 node_modules
+videos
+test-results
+
+# Playwright
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
