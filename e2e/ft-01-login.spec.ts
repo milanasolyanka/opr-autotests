@@ -1,7 +1,5 @@
 import { test, expect, Page, BrowserContext } from "@playwright/test";
 import * as dotenv from "dotenv";
-import * as path from "path";
-import * as fs from "fs";
 
 dotenv.config();
 
@@ -20,32 +18,10 @@ test.describe("FT-01: Вход через e-mail и пароль", () => {
   });
 
   test.afterEach(async () => {
-    // Явно закрываем контекст – это финализирует запись видео на диск
     await context.close();
-
-    try {
-      const video = page.video();
-      if (video) {
-        const videoPath = await video.path(); // теперь путь доступен
-        if (videoPath) {
-          const testName = test.info().title.replace(/[^a-z0-9]/gi, "_");
-          const targetDir = path.join(process.cwd(), "videos");
-          if (!fs.existsSync(targetDir)) {
-            fs.mkdirSync(targetDir, { recursive: true });
-          }
-          const targetPath = path.join(targetDir, `${testName}.webm`);
-          // Копируем файл (синхронно, чтобы гарантировать сохранение)
-          fs.copyFileSync(videoPath, targetPath);
-          console.log(`[INFO] Видео сохранено: ${targetPath}`);
-        } else {
-          console.warn("[WARNING] Путь к видео не найден.");
-        }
-      }
-    } catch (error) {
-      console.error(`[WARNING] Не удалось сохранить видео: ${error}`);
-    }
-
-    console.log("[INFO] Тест завершён.");
+    console.log(
+      "[INFO] Тест завершён. Видео автоматически сохранено в папку 'videos/'",
+    );
   });
 
   test("Успешный вход с лендинга", async () => {
