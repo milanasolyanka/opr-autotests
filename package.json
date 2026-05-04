@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/milanasolyanka/opr-autotests#readme",
   "dependencies": {
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "k6": "^0.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

@@ -3,6 +3,7 @@ htmls
 node_modules
 videos
 test-results
+load-testing-logs*
 
 # Playwright
 /playwright-report/
