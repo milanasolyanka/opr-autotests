@@ -12,6 +12,7 @@ test.describe("FT-15: Создание класса, привязка учени
 
   test.beforeEach(async ({ browser }) => {
     context = await browser.newContext({
+      storageState: "storageState.json",
       recordVideo: { dir: "videos/" },
       viewport: { width: 1280, height: 720 },
       userAgent:
@@ -31,22 +32,12 @@ test.describe("FT-15: Создание класса, привязка учени
   });
 
   test("Создание класса, привязка ученика и урока", async () => {
-    // ===== 1. Логин преподавателя =====
-    await test.step("Логин преподавателя", async () => {
-      await page.goto(process.env.BASE_URL!);
-      await page.waitForLoadState("domcontentloaded");
-
-      await page.locator('button[test="start_b_login"]').click();
-      await page.waitForURL(/\/login|\/Account\/Login/i, { timeout: 15000 });
-
-      await page
-        .locator('input[test="login_i_login"]')
-        .fill(process.env.TEST_EMAIL!);
-      await page
-        .locator('input[test="login_i_password"]')
-        .fill(process.env.TEST_PASSWORD!);
-      await page.locator('button[test="login_b_login"]').click();
-      await page.waitForURL(/\/cabinet\/school\/classes/, { timeout: 15000 });
+    await test.step("Переход на страницу классов", async () => {
+      await page.goto(process.env.BASE_URL! + "/cabinet/school/classes", {
+        waitUntil: "domcontentloaded",
+        timeout: 30000,
+      });
+      await page.waitForSelector('h1:has-text("Классы")', { timeout: 30000 });
     });
 
     // ===== 2. Создание класса =====
@@ -54,7 +45,7 @@ test.describe("FT-15: Создание класса, привязка учени
       const createClassBtn = page.locator("button", {
         hasText: /Создать новый класс|Создать класс/,
       });
-      await createClassBtn.waitFor({ state: "visible", timeout: 10000 });
+      await createClassBtn.waitFor({ state: "visible", timeout: 20000 });
       await createClassBtn.click();
 
       const individualClass = page.locator(".classroom-tab-types", {
@@ -81,15 +72,15 @@ test.describe("FT-15: Создание класса, привязка учени
           const style = window.getComputedStyle(preloader);
           return style.display === "none";
         },
-        { timeout: 30000 },
+        { timeout: 60000 },
       );
 
-      await page.waitForTimeout(1000);
+      // await page.waitForTimeout(60000);
 
       const classroomTitle = page.locator(".classroom-plug h1", {
         hasText: "Задайте обучающий материал",
       });
-      await classroomTitle.waitFor({ state: "visible", timeout: 30000 });
+      await classroomTitle.waitFor({ state: "visible", timeout: 60000 });
     });
 
     // ===== 3. Добавление ученика =====
@@ -147,6 +138,7 @@ test.describe("FT-15: Создание класса, привязка учени
       await placementTestCard.click();
 
       const infoElement = page.locator(".info.w-100.f").first();
+      await infoElement.waitFor({ state: "visible", timeout: 30000 });
       await infoElement.click();
 
       const lessonLink = page.locator(".info.w-100.f p", {

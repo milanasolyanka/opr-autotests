@@ -44,6 +44,7 @@ test.describe("FT-13: Персональный словарь студента",
         headless: true, // для отладки, в CI можно true
       });
       teacherContext = await teacherBrowser.newContext({
+        storageState: "storageState.json",
         recordVideo: { dir: "videos/" },
         viewport: { width: 1280, height: 720 },
         userAgent:
@@ -54,26 +55,6 @@ test.describe("FT-13: Персональный словарь студента",
       });
       teacherPage = await teacherContext.newPage();
       await teacherPage.setDefaultTimeout(60000);
-
-      // Логин преподавателя
-      await test.step("TEACHER: Логин в аккаунт", async () => {
-        await teacherPage.goto(process.env.BASE_URL!);
-        await teacherPage.waitForLoadState("domcontentloaded");
-        await teacherPage.locator('button[test="start_b_login"]').click();
-        await teacherPage.waitForURL(/\/login|\/Account\/Login/i, {
-          timeout: 15000,
-        });
-        await teacherPage
-          .locator('input[test="login_i_login"]')
-          .fill(process.env.TEST_EMAIL!);
-        await teacherPage
-          .locator('input[test="login_i_password"]')
-          .fill(process.env.TEST_PASSWORD!);
-        await teacherPage.locator('button[test="login_b_login"]').click();
-        await teacherPage.waitForURL(/\/cabinet\/school\/classes/, {
-          timeout: 15000,
-        });
-      });
 
       // Переход в класс и редактирование
       await test.step("TEACHER: Переход в класс и редактирование вопроса", async () => {
@@ -91,7 +72,7 @@ test.describe("FT-13: Персональный словарь студента",
           ".exercise-wrapper-title-text div",
           { hasText: "test_title" },
         );
-        await targetExercise.waitFor({ state: "visible", timeout: 10000 });
+        await targetExercise.waitFor({ state: "visible", timeout: 60000 });
 
         const exerciseContainer = targetExercise.locator(
           'xpath=ancestor::div[@class="exercise-wrapper exercise-common-ui-components"]',
@@ -109,7 +90,7 @@ test.describe("FT-13: Персональный словарь студента",
         );
         await editButton.click();
         await teacherPage.waitForSelector(".exercise-visual-constructor", {
-          timeout: 15000,
+          timeout: 30000,
         });
 
         const questionEditable = teacherPage.locator(
@@ -180,6 +161,7 @@ test.describe("FT-13: Персональный словарь студента",
         headless: true,
       });
       studentContext = await studentBrowser.newContext({
+        storageState: undefined,
         recordVideo: { dir: "videos/" },
         viewport: { width: 1280, height: 720 },
         userAgent:

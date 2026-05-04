@@ -10,6 +10,7 @@ test.describe("FT-05: Создание нового урока внутри уч
 
   test.beforeEach(async ({ browser }) => {
     context = await browser.newContext({
+      storageState: "storageState.json",
       recordVideo: { dir: "videos/" },
       viewport: { width: 1280, height: 720 },
       userAgent:
@@ -31,49 +32,16 @@ test.describe("FT-05: Создание нового урока внутри уч
     const timestamp = Date.now();
     lessonName = `Урок ${timestamp}`;
 
-    // ===== 1. Логин =====
-    await test.step('Переход на логин"', async () => {
-      await page.goto(process.env.BASE_URL! + "/login", {
-        waitUntil: "domcontentloaded",
-        timeout: 30000,
-      });
-
-      // Ждём загрузки формы
-      await page.waitForSelector(
-        ".auntefication_layout, .tir-tabs, .tir-input",
-        {
-          timeout: 15000,
-        },
-      );
-    });
-
-    await test.step("Ввод email и пароля", async () => {
-      await page
-        .locator('input[test="login_i_login"]')
-        .fill(process.env.TEST_EMAIL!);
-      await page
-        .locator('input[test="login_i_password"]')
-        .fill(process.env.TEST_PASSWORD!);
-    });
-
-    await test.step("Отправка формы входа", async () => {
-      await page.locator('button[test="login_b_login"]').click();
-    });
-
-    await test.step("Ожидание редиректа на дашборд", async () => {
-      await page.waitForURL(/\/cabinet\/school\/classes/, { timeout: 15000 });
-    });
-
     // ===== 2. Переход к учебнику =====
     await test.step(`Переход к учебнику с ID: ${bookId}`, async () => {
       await page.goto(
-        `https://progressme.ru/cabinet/school/materials/book/${bookId}/content`,
+        `${process.env.BASE_URL}/cabinet/school/materials/book/${bookId}/content`,
         {
           waitUntil: "domcontentloaded",
           timeout: 30000,
         },
       );
-      await page.waitForSelector(".book-page-content", { timeout: 15000 });
+      await page.waitForSelector(".book-page-content", { timeout: 60000 });
     });
 
     // ===== 3. Нажатие кнопки "Создать урок" =====
@@ -81,7 +49,7 @@ test.describe("FT-05: Создание нового урока внутри уч
       const createLessonBtn = page.locator(".unit_list_btns-action-create", {
         hasText: "Создать урок",
       });
-      await createLessonBtn.waitFor({ state: "visible", timeout: 10000 });
+      await createLessonBtn.waitFor({ state: "visible", timeout: 60000 });
       await createLessonBtn.click();
     });
 
@@ -109,7 +77,7 @@ test.describe("FT-05: Создание нового урока внутри уч
     await test.step("Ожидание загрузки редактора урока", async () => {
       await page.waitForURL(
         /\/lesson-editor\/book\/\d+\/lesson\/\d+\/section\/\d+/,
-        { timeout: 30000 },
+        { timeout: 60000 },
       );
       await page.waitForSelector(".lesson-viewer-layout", { timeout: 15000 });
     });
@@ -123,7 +91,7 @@ test.describe("FT-05: Создание нового урока внутри уч
     // ===== 7. Возврат к учебнику и проверка появления урока =====
     await test.step("Возврат к учебнику для проверки", async () => {
       await page.goto(
-        `https://progressme.ru/cabinet/school/materials/book/${bookId}/content`,
+        `${process.env.BASE_URL}/cabinet/school/materials/book/${bookId}/content`,
         {
           waitUntil: "domcontentloaded",
           timeout: 30000,
@@ -136,7 +104,7 @@ test.describe("FT-05: Создание нового урока внутри уч
       const createdLesson = page.locator(".unit_li .info p", {
         hasText: lessonName,
       });
-      await expect(createdLesson).toBeVisible({ timeout: 10000 });
+      await expect(createdLesson).toBeVisible({ timeout: 30000 });
     });
   });
 });

@@ -6,6 +6,7 @@ test-results
 load-testing-logs*
 allure-results
 **.png
+storageState.json
 
 # Playwright
 /playwright-report/

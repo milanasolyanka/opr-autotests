@@ -9,6 +9,7 @@ test.describe("FT-01: Вход через e-mail и пароль", () => {
 
   test.beforeEach(async ({ browser }) => {
     context = await browser.newContext({
+      storageState: undefined,
       recordVideo: { dir: "videos/" },
       viewport: { width: 1280, height: 720 },
       userAgent:
@@ -25,7 +26,7 @@ test.describe("FT-01: Вход через e-mail и пароль", () => {
     await context.close();
   });
 
-  test("Успешный вход с лендинга", async () => {
+  test("Успешный вход", async () => {
     await test.step('Переход на логин"', async () => {
       await page.goto(process.env.BASE_URL! + "/login", {
         waitUntil: "domcontentloaded",

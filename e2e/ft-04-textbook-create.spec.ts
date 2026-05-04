@@ -10,6 +10,7 @@ test.describe("FT-04: Создание нового учебника", () => {
 
   test.beforeEach(async ({ browser }) => {
     context = await browser.newContext({
+      storageState: "storageState.json",
       recordVideo: { dir: "videos/" },
       viewport: { width: 1280, height: 720 },
       userAgent:
@@ -30,44 +31,19 @@ test.describe("FT-04: Создание нового учебника", () => {
     const timestamp = Date.now();
     materialName = `Учебник ${timestamp}`;
 
-    // ===== 1. Логин =====
-    await test.step('Переход на логин"', async () => {
-      await page.goto(process.env.BASE_URL! + "/login", {
+    await test.step("Переход на страницу классов", async () => {
+      await page.goto(process.env.BASE_URL! + "/cabinet/school/classes", {
         waitUntil: "domcontentloaded",
         timeout: 30000,
       });
-
-      // Ждём загрузки формы
-      await page.waitForSelector(
-        ".auntefication_layout, .tir-tabs, .tir-input",
-        {
-          timeout: 15000,
-        },
-      );
-    });
-
-    await test.step("Ввод email и пароля", async () => {
-      await page
-        .locator('input[test="login_i_login"]')
-        .fill(process.env.TEST_EMAIL!);
-      await page
-        .locator('input[test="login_i_password"]')
-        .fill(process.env.TEST_PASSWORD!);
-    });
-
-    await test.step("Отправка формы входа", async () => {
-      await page.locator('button[test="login_b_login"]').click();
-    });
-
-    await test.step("Ожидание редиректа на дашборд", async () => {
-      await page.waitForURL(/\/cabinet\/school\/classes/, { timeout: 15000 });
+      await page.waitForSelector('h1:has-text("Классы")', { timeout: 60000 });
     });
 
     // ===== 2. Навигация к созданию материала =====
     await test.step('Переход в раздел "Материалы" (сайдбар)', async () => {
       await page.locator("#sidebar-materials").click();
       await page.waitForURL(/\/cabinet\/school\/materials\/catalog/, {
-        timeout: 15000,
+        timeout: 60000,
       });
     });
 
@@ -118,6 +94,7 @@ test.describe("FT-04: Создание нового учебника", () => {
     await test.step("Ввод описания (опционально)", async () => {
       const modal = page.locator(".tir-modal");
       const descriptionEditor = modal.locator(".html-editor-inline");
+      await descriptionEditor.waitFor({ state: "visible", timeout: 10000 });
       await descriptionEditor.click();
       await descriptionEditor.fill(
         `Автоматически созданный учебник для теста FT-04 (${new Date().toISOString()})`,

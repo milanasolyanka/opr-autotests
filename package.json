@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "auth": "playwright test auth.setup.spec.ts",
+    "test": "playwright test",
+    "report": "playwright show-report",
+    "allure": "allure generate ./allure-results --clean && allure open"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/milanasolyanka/opr-autotests.git"
