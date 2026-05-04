@@ -4,6 +4,8 @@ node_modules
 videos
 test-results
 load-testing-logs*
+allure-results
+**.png
 
 # Playwright
 /playwright-report/

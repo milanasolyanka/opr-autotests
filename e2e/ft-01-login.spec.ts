@@ -5,82 +5,71 @@ dotenv.config();
 
 test.describe("FT-01: Вход через e-mail и пароль", () => {
   let page: Page;
-  let context: BrowserContext; // сохраняем ссылку на контекст
+  let context: BrowserContext;
 
   test.beforeEach(async ({ browser }) => {
     context = await browser.newContext({
       recordVideo: { dir: "videos/" },
       viewport: { width: 1280, height: 720 },
+      userAgent:
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      extraHTTPHeaders: {
+        "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+      },
     });
     page = await context.newPage();
     await page.setDefaultTimeout(30000);
-    console.log("[INFO] Браузер запущен, контекст создан.");
   });
 
   test.afterEach(async () => {
     await context.close();
-    console.log(
-      "[INFO] Тест завершён. Видео автоматически сохранено в папку 'videos/'",
-    );
   });
 
   test("Успешный вход с лендинга", async () => {
-    console.log("[STEP 1] Переход на лендинг...");
-    await page.goto(process.env.BASE_URL!);
-    await page.waitForLoadState("domcontentloaded");
+    await test.step('Переход на логин"', async () => {
+      await page.goto(process.env.BASE_URL! + "/login", {
+        waitUntil: "domcontentloaded",
+        timeout: 30000,
+      });
 
-    // 1. Нажать кнопку "ВОЙТИ" в шапке
-    console.log('[STEP 2] Нажатие кнопки "ВОЙТИ"...');
-    const loginButton = page.locator('button[test="start_b_login"]');
-    await loginButton.waitFor({ state: "visible" });
-    await loginButton.click();
-    console.log('[INFO] Клик по кнопке "ВОЙТИ" выполнен.');
+      // Ждём загрузки формы
+      await page.waitForSelector(
+        ".auntefication_layout, .tir-tabs, .tir-input",
+        {
+          timeout: 15000,
+        },
+      );
+    });
 
-    // Ждём переход на страницу входа (гибкое регулярное выражение)
-    console.log("[INFO] Ожидание перехода на страницу входа...");
-    await page.waitForURL(/\/login|\/Account\/Login/i, { timeout: 15000 });
-    console.log(`[INFO] Текущий URL: ${page.url()}`);
+    await test.step("Ввод email", async () => {
+      const emailInput = page.locator('input[test="login_i_login"]');
+      await emailInput.waitFor({ state: "visible", timeout: 10000 });
+      await emailInput.fill(process.env.TEST_EMAIL!);
+    });
 
-    // Дополнительно ждём появления поля email, чтобы убедиться, что форма загрузилась
-    const emailInput = page.locator('input[test="login_i_login"]');
-    await emailInput.waitFor({ state: "visible" });
+    await test.step("Ввод пароля", async () => {
+      const passwordInput = page.locator('input[test="login_i_password"]');
+      // await passwordInput.waitFor({ state: "visible" });
+      await passwordInput.fill(process.env.TEST_PASSWORD!);
+    });
 
-    // 2. Заполняем email
-    console.log("[STEP 3] Ввод email...");
-    await emailInput.waitFor({ state: "visible" });
-    await emailInput.fill(process.env.TEST_EMAIL!);
-    console.log(`[INFO] Email введён: ${process.env.TEST_EMAIL}`);
+    await test.step("Отправка формы", async () => {
+      const submitButton = page.locator('button[test="login_b_login"]');
+      await submitButton.click();
+    });
 
-    // 3. Заполняем пароль
-    console.log("[STEP 4] Ввод пароля...");
-    const passwordInput = page.locator('input[test="login_i_password"]');
-    await passwordInput.waitFor({ state: "visible" });
-    await passwordInput.fill(process.env.TEST_PASSWORD!);
-    console.log(`[INFO] Пароль введён (скрыто).`);
+    await test.step("Ожидание редиректа на дашборд", async () => {
+      await page.waitForURL(/\/cabinet\/school\/classes/, { timeout: 15000 });
+    });
 
-    // 4. Нажать кнопку входа
-    console.log("[STEP 5] Отправка формы...");
-    const submitButton = page.locator('button[test="login_b_login"]');
-    await submitButton.click();
-    console.log('[INFO] Кнопка "Войти в аккаунт" нажата.');
+    await test.step('Проверка заголовка "Классы"', async () => {
+      const classesHeader = page.locator("h1", { hasText: "Классы" });
+      await expect(classesHeader).toBeVisible({ timeout: 10000 });
+    });
 
-    // 5. Ожидаем редирект на дашборд (страница классов)
-    console.log("[STEP 6] Ожидание редиректа на дашборд...");
-    await page.waitForURL(/\/cabinet\/school\/classes/, { timeout: 15000 });
-    console.log(`[INFO] Редирект выполнен, текущий URL: ${page.url()}`);
-
-    // 6. Проверяем, что отобразился заголовок "Классы"
-    console.log('[STEP 7] Проверка наличия заголовка "Классы"...');
-    const classesHeader = page.locator("h1", { hasText: "Классы" });
-    await expect(classesHeader).toBeVisible({ timeout: 10000 });
-    console.log('[SUCCESS] Заголовок "Классы" виден на странице.');
-
-    // Дополнительная проверка: наличие блока с классами (можно проверить элемент .sidebar_layout или .cabinet_header_content)
-    console.log("[STEP 8] Проверка элемента дашборда (user-menu)...");
-    const userMenu = page.locator(".cabinet_header_content");
-    await expect(userMenu).toBeVisible();
-    console.log("[SUCCESS] Элемент навигации дашборда виден.");
-
-    console.log("[OK] Тест FT-01 пройден успешно!");
+    await test.step("Проверка элемента дашборда (user-menu)", async () => {
+      const userMenu = page.locator(".cabinet_header_content");
+      await expect(userMenu).toBeVisible();
+    });
   });
 });
